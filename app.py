@@ -1,231 +1,240 @@
-import justext  # Make sure to import justext
-import matplotlib.pyplot as plt
-import pandas as pd
-import requests
+from io import BytesIO
+
+import PyPDF2
 import streamlit as st
-import yake
-from PyPDF2 import PdfReader
-from pytube import YouTube
-from wordcloud import WordCloud
-from youtube_transcript_api import YouTubeTranscriptApi
+
+# Liste des thèmes à rechercher
+themes_socio_economiques = [
+    "Coût de la vie",
+    "Logement",
+    "Sécurité",
+    "Émigration",
+    "Pouvoir d’achat",
+    "Aide à l’entreprenariat",
+    "Démocratie",
+    "Santé publique",
+    "Éducation",
+    "Infrastructures industrielles",
+    "Économie du savoir",
+    "Agriculture et souveraineté alimentaire",
+    "Emploi et formation",
+    "Protection sociale",
+    "Énergie et transition énergétique",
+    "Sécurité intérieure et relations internationales",
+    "Technologies numériques et innovation",
+    "Gouvernance et institutions démocratiques",
+    "Environnement et développement durable",
+    "Équité et inclusion sociale",
+    "Commerce international",
+    "Investissement étranger",
+    "Réformes fiscales",
+    "Développement rural",
+    "Tourisme et culture",
+    "Sports et loisirs",
+    "Santé mentale",
+    "Égalité des genres",
+    "Droits de l'homme",
+    "Liberté d'expression",
+    "Transparence gouvernementale",
+    "Développement urbain",
+    "Transport et mobilité",
+    "Gestion des déchets",
+    "Qualité de l'air et pollution",
+    "Conservation de la biodiversité",
+    "Gestion des ressources en eau",
+    "Résilience aux changements climatiques",
+    "Éducation à la citoyenneté",
+    "Accès à l'information",
+    "Diversité et intégration",
+    "Réforme judiciaire",
+    "Droits des enfants",
+    "Protection des données personnelles",
+    "Cybersécurité",
+    "Innovation en santé",
+    "Énergies renouvelables",
+    "Efficacité énergétique",
+    "Sécurité alimentaire",
+    "Réduction de la pauvreté",
+    "Développement des PME",
+    "Formation professionnelle",
+    "Accessibilité numérique",
+    "Inclusion financière",
+    "Réseaux de transport public",
+    "Développement de la petite enfance",
+    "Soutien aux familles",
+    "Droits des travailleurs",
+    "Réforme des retraites",
+    "Sécurité sociale",
+    "Prévention de la corruption",
+    "Participation citoyenne",
+    "Développement des arts et de la culture",
+    "Politiques de jeunesse",
+    "Accès aux soins de santé",
+    "Gestion des crises et des catastrophes",
+    "Aménagement territorial",
+    "Urbanisme durable",
+    "Gestion des ressources naturelles",
+    "Efficacité gouvernementale",
+    "Réduction des inégalités",
+    "Lutte contre le chômage",
+    "Développement des compétences",
+    "Connectivité rurale",
+    "Inclusion numérique",
+    "Modernisation de l'administration publique",
+    "Soutien à la recherche et au développement",
+    "Collaboration internationale",
+    "Diplomatie économique",
+    "Gestion des frontières",
+    "Intégration régionale",
+    "Politique de l'immigration",
+    "Droits des minorités",
+    "Protection de l'enfance",
+    "Soutien aux personnes handicapées",
+    "Santé reproductive",
+    "Prévention des maladies",
+    "Réforme de l'éducation",
+    "Qualité de vie",
+    "Accès à l'énergie",
+    "Développement des infrastructures",
+    "Stratégies anti-pauvreté",
+    "Égalité d'accès aux services",
+    "Décentralisation gouvernementale",
+    "Promotion de l'économie locale",
+    "Conservation du patrimoine",
+    "Développement communautaire",
+    "Amélioration des services publics",
+    "Réforme des systèmes de santé",
+    "Gestion durable des forêts",
+    "Protection de la faune et de la flore",
+    "Prévention de la violence" "Développement durable",
+    "Gestion des crises sanitaires",
+    "Innovation agricole",
+    "Accès à l'eau potable",
+    "Réseaux d'assainissement",
+    "Politiques migratoires",
+    "Lutte contre le terrorisme",
+    "Réformes électorales",
+    "Gouvernance locale",
+    "Transports en commun",
+    "Développement des TIC",
+    "Économie verte",
+    "Droits des peuples autochtones",
+    "Patrimoine culturel",
+    "Tourisme durable",
+    "Éducation aux médias",
+    "Lutte contre la désinformation",
+    "Accès à Internet",
+    "E-commerce",
+    "Inclusion des jeunes",
+    "Développement des compétences numériques",
+    "Économie circulaire",
+    "Gestion des ressources halieutiques",
+    "Agriculture durable",
+    "Sécurité routière",
+    "Accès aux soins de santé primaires",
+    "Soins de santé mentale",
+    "Prévention du VIH/SIDA",
+    "Maladies tropicales négligées",
+    "Santé maternelle",
+    "Nutrition et sécurité alimentaire",
+    "Microfinance",
+    "Banque mobile",
+    "Développement des infrastructures numériques",
+    "Éducation financière",
+    "Économie collaborative",
+    "Espaces verts urbains",
+    "Qualité de l'habitat",
+    "Réseaux électriques",
+    "Développement de l'énergie solaire",
+    "Biocarburants",
+    "Gestion des déchets électroniques",
+    "Réglementations environnementales",
+    "Conservation marine",
+    "Protection des écosystèmes",
+    "Lutte contre la déforestation",
+    "Urbanisation et planification",
+    "Inclusion des personnes handicapées",
+    "Droits des LGBTQ+",
+    "Réforme du secteur de la sécurité",
+    "Lutte contre les inégalités de genre",
+    "Développement de l'économie bleue",
+    "Coopération Sud-Sud",
+    "Relations internationales",
+    "Intégration économique régionale",
+    "Soutien à l'entrepreneuriat féminin",
+    "Innovation en matière de santé",
+    "Télétravail et travail à distance",
+    "Équilibre vie professionnelle/vie privée",
+    "Éducation bilingue",
+    "Langues régionales",
+    "Réforme de l'enseignement supérieur",
+    "Échanges culturels internationaux",
+    "Soutien aux industries créatives",
+    "Protection des droits d'auteur",
+    "Éducation en environnement",
+    "Programmes de reforestation",
+    "Développement de l'agroforesterie",
+    "Gestion durable des terres",
+    "Réduction des émissions de gaz à effet de serre",
+    "Adaptation au changement climatique",
+    "Prévention des risques naturels",
+    "Résilience urbaine",
+    "Mobilité durable",
+    "Transport aérien",
+    "Voies navigables",
+    "Développement du commerce équitable",
+    "Commerce intra-africain",
+    "Relations Afrique-diaspora",
+    "Réseaux d'éducation à la paix",
+    "Désarmement et non-prolifération",
+    "Médiation de conflits",
+    "Droits des réfugiés",
+    "Intégration des migrants",
+    "Prévention de la radicalisation",
+    "Lutte contre le trafic d'êtres humains",
+    "Réforme de la gouvernance mondiale",
+    "Diplomatie climatique",
+    "Souveraineté alimentaire",
+    "Aide au développement",
+    "Partenariats public-privé",
+    "Financement du développement",
+    "Réduction de la dette",
+    "Soutien à la petite enfance",
+    "Protection sociale pour tous",
+    "Systèmes de santé universels",
+    "Accès aux médicaments essentiels",
+    "Lutte contre les épidémies",
+    "Santé et environnement",
+    "Éducation à la sexualité",
+    "Droits reproductifs",
+    "Planification familiale",
+    "Prévention du mariage des enfants",
+]
 
 
-class WebApp:
-    def extract_keywords(
-        self, text, num_keywords, visualize_wordcloud=True, visualize_barchart=True
-    ):
-        # Extract keywords from the text and visualize in a word cloud and/or bar chart
-        kw_extractor = yake.KeywordExtractor()
-        language = "french"
-        max_ngram_size = 3
-        deduplication_threshold = 0.9
-        custom_kw_extractor = yake.KeywordExtractor(
-            lan=language,
-            n=max_ngram_size,
-            dedupLim=deduplication_threshold,
-            top=num_keywords,
-            features=None,
-        )
-        keywords = custom_kw_extractor.extract_keywords(text)
+def extraire_themes_du_pdf(fichier):
+    lecteur_pdf = PyPDF2.PdfReader(fichier)
 
-        # Get the specified number of keywords
-        top_keywords = [keyword[0] for keyword in keywords[:num_keywords]]
+    themes_trouves = {}
+    for num_page, page in enumerate(lecteur_pdf.pages):
+        texte_page = page.extract_text()
 
-        # Create a DataFrame for bar chart visualization
-        df_keywords = pd.DataFrame(
-            {"Keyword": top_keywords, "Score": [keyword[1] for keyword in keywords[:num_keywords]]}
-        )
+        for theme in themes_socio_economiques:
+            if theme.lower() in texte_page.lower():
+                if theme not in themes_trouves:
+                    themes_trouves[theme] = []
+                themes_trouves[theme].append(num_page + 1)
 
-        # Visualize word cloud if selected
-        if visualize_wordcloud:
-            # Display a dynamic subheader for word cloud visualization
-            st.subheader(f"Word Cloud for Top {num_keywords} Keywords")
-
-            # Display the word cloud
-            fig_wc, ax_wc = plt.subplots(figsize=(20, 20))
-            wordcloud = WordCloud(
-                stopwords=None, background_color="white", width=800, height=400
-            ).generate(" ".join(top_keywords))
-            ax_wc.imshow(wordcloud, interpolation="bilinear")
-            ax_wc.axis("off")
-            st.pyplot(fig_wc)
-
-        # Visualize bar chart if selected
-        if visualize_barchart:
-            # Display a dynamic subheader for bar chart visualization
-            st.subheader(f"Bar Chart for Top {num_keywords} Keywords")
-
-            # Display the bar chart
-            fig_bc, ax_bc = plt.subplots(figsize=(10, 6))
-            df_keywords.plot(
-                kind="barh", x="Keyword", y="Score", ax=ax_bc, color="skyblue", rot=0
-            )  # Adjust the rotation angle as needed
-            ax_bc.set_ylabel("Score")
-            ax_bc.set_title(f"Top {num_keywords} Keywords and Their Scores")
-            # st.pyplot(fig_bc)
-
-        # Display the top keywords
-        # st.subheader(f"Top {num_keywords} Keywords:")
-        # st.write(top_keywords)
-
-        # Count occurrences of the specified word
-        # List of words to count and visualize
-        words_to_count = [
-            "numérique",
-            "Société",
-            "Révolution",
-            "Développement",
-        ]  # Add more words as needed
-
-        # Count occurrences of each specified word
-        word_counts = {word: text.lower().split().count(word.lower()) for word in words_to_count}
-
-        # Plot bar chart for each specified word
-        if visualize_barchart:
-            df_word_counts = pd.DataFrame(list(word_counts.items()), columns=["Word", "Count"])
-            st.subheader("Bar Chart for Word Occurrences")
-
-            # Display the bar chart
-            fig_word_counts, ax_word_counts = plt.subplots(figsize=(10, 6))
-            df_word_counts.plot(
-                kind="bar", x="Word", y="Count", ax=ax_word_counts, colormap="viridis"
-            )
-        #  ax_word_counts.set_ylabel("Count")
-        #  ax_word_counts.set_title("Occurrences of Words in the Text")
-        # st.pyplot(fig_word_counts)
-
-    def download_transcript(self, video_url, num_keywords):
-        # Download the transcription from YouTube using the video URL
-        try:
-            video_id = YouTube(video_url).video_id
-            transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=["fr"])
-            transcript_text = "\n".join([entry["text"] for entry in transcript])
-            keywords = self.extract_keywords(transcript_text, num_keywords)
-
-            # Display the transcript
-            st.subheader("YouTube Transcript:")
-            st.write(transcript_text)
-
-            if keywords:
-                # Pass the number of keywords to the extract_keywords method
-                self.extract_keywords(transcript_text, num_keywords)
-
-        except Exception as e:
-            st.error(f"Error downloading transcript: {str(e)}")
-
-    def scrape_content_url(self, url, num_keywords):
-        # Scrape content from a given URL using requests and justext
-        try:
-            response = requests.get(url)
-            paragraphs = justext.justext(response.content, justext.get_stoplist("French"))
-            total_paragraphs = len(paragraphs)
-            scraped_content = []
-
-            with st.progress(0):
-                for i, paragraph in enumerate(paragraphs):
-                    if not paragraph.is_boilerplate:
-                        scraped_content.append(paragraph.text)
-
-                    # Update overall progress bar
-                    progress = (i + 1) / total_paragraphs
-                    st.progress(progress)
-
-            content_text = " ".join(scraped_content)
-            keywords = self.extract_keywords(content_text, num_keywords)
-
-            return content_text, keywords
-        except Exception as e:
-            st.error(f"Error scraping content: {str(e)}")
-            return None, None
-
-    def scrape_content_pdf(self, pdf_file, num_keywords):
-        # Extract text from a PDF document
-        try:
-            pdf_reader = PdfReader(pdf_file)
-            total_pages = len(pdf_reader.pages)
-            extracted_text = []
-
-            with st.progress(0):
-                for i in range(total_pages):
-                    page = pdf_reader.pages[i]
-                    extracted_text.append(page.extract_text())
-
-                    # Update overall progress bar
-                    progress = (i + 1) / total_pages
-                    st.progress(progress)
-
-            content_text = " ".join(extracted_text)
-            keywords = self.extract_keywords(content_text, num_keywords)
-
-            return content_text, keywords
-        except Exception as e:
-            st.error(f"Error extracting text from PDF: {str(e)}")
-            return None, None
-
-    def run(self):
-        st.markdown(
-            "<h1 style='font-size:1.5em;'>Institut des Algorithmes du Sénégal - Diangat Web App</h1>",
-            unsafe_allow_html=True,
-        )
-
-        # Choose between URL, PDF, or YouTube
-        option = st.sidebar.radio("Choose data source:", ("URL", "PDF", "YouTube"))
-
-        # Add an input for the number of keywords
-        num_keywords = st.number_input(
-            "Number of Keywords (up to 20):", min_value=1, max_value=200, value=20
-        )
-
-        # Sidebar buttons
-        action_button = st.sidebar.button("Run Analysis")
-
-        if option == "URL":
-            # Input URL
-            url = st.text_input("Enter the URL to scrape:", "")
-            if action_button or st.button("Scrape Content"):
-                if url:
-                    st.info("Scraping content... Please wait.")
-                    scraped_content, keywords = self.scrape_content_url(url, num_keywords)
-
-                    if scraped_content:
-                        st.subheader("Scraped Content:")
-                        st.write(scraped_content)
-
-                        if keywords:
-                            # Pass the number of keywords to the extract_keywords method
-                            self.extract_keywords(scraped_content, num_keywords)
-                    else:
-                        st.warning("Failed to scrape content. Check the URL and try again.")
-
-        elif option == "PDF":
-            # Upload PDF file
-            pdf_file = st.file_uploader("Upload a PDF file", type=["pdf"])
-            if action_button or st.button("Extract Text"):
-                if pdf_file:
-                    st.info("Extracting text... Please wait.")
-                    extracted_text, keywords = self.scrape_content_pdf(pdf_file, num_keywords)
-
-                    if extracted_text:
-                        st.subheader("Extracted Text:")
-                        if keywords:
-                            # Pass the number of keywords to the extract_keywords method
-                            self.extract_keywords(extracted_text, num_keywords)
-                    else:
-                        st.warning(
-                            "Failed to extract text from PDF. Check the file and try again."
-                        )
-
-        elif option == "YouTube":
-            # Input YouTube URL
-            youtube_url = st.text_input("Enter the YouTube URL:", "")
-            if action_button or st.button("Download Transcript"):
-                if youtube_url:
-                    st.info("Downloading transcript... Please wait.")
-                    self.download_transcript(youtube_url, num_keywords)
-                else:
-                    st.warning("Please enter a valid YouTube URL.")
+    return themes_trouves
 
 
-if __name__ == "__main__":
-    web_app = WebApp()
-    web_app.run()
+# Interface Streamlit
+st.title("Analyseur de Thèmes de Programme Électoral")
+fichier_uploade = st.file_uploader("Téléchargez un fichier PDF", type="pdf")
+
+if fichier_uploade is not None:
+    with st.spinner("Analyse en cours..."):
+        themes_trouves = extraire_themes_du_pdf(BytesIO(fichier_uploade.read()))
+        st.write("Thèmes trouvés et leurs pages correspondantes :")
+        for theme, pages in themes_trouves.items():
+            st.write(f"{theme} : {pages}")
