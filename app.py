@@ -280,7 +280,7 @@ class WebApp:
             if fichier_uploade and action_button:
                 with st.spinner("Analyse en cours..."):
                     themes_trouves = extraire_themes_du_pdf(BytesIO(fichier_uploade.read()))
-                    st.subheader("Voici une liste non exhaustive des thèmes abordés dans le texte :")
+                    st.subheader("Voici une liste non exhaustive des thèmes abordés dans le programme :")
                     for index, (theme, pages) in enumerate(themes_trouves.items(), 1):
                         with st.expander(f"Thème {index}: {theme}"):
                             st.write(f"Pages : {', '.join(map(str, pages))}")
