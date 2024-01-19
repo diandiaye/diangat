@@ -1,7 +1,11 @@
-from io import BytesIO
-
 import PyPDF2
 import streamlit as st
+from io import BytesIO
+from pytube import YouTube
+from youtube_transcript_api import YouTubeTranscriptApi
+import requests
+import justext
+
 
 # Liste des thèmes à rechercher
 themes_socio_economiques = [
@@ -211,7 +215,6 @@ themes_socio_economiques = [
     "Prévention du mariage des enfants",
 ]
 
-
 def extraire_themes_du_pdf(fichier):
     lecteur_pdf = PyPDF2.PdfReader(fichier)
 
@@ -227,14 +230,66 @@ def extraire_themes_du_pdf(fichier):
 
     return themes_trouves
 
+class WebApp:
+    def download_transcript(self, video_url, num_keywords):
+        # Télécharge la transcription depuis YouTube en utilisant l'URL de la vidéo
+        try:
+            video_id = YouTube(video_url).video_id
+            transcript = YouTubeTranscriptApi.get_transcript(video_id, languages=["fr"])
+            transcript_text = "\n".join([entry["text"] for entry in transcript])
+            st.subheader("Transcription YouTube:")
+            st.write(transcript_text)
 
-# Interface Streamlit
-st.title("Analyseur de Thèmes de Programme Électoral")
-fichier_uploade = st.file_uploader("Téléchargez un fichier PDF", type="pdf")
+        except Exception as e:
+            st.error(f"Erreur lors du téléchargement de la transcription : {str(e)}")
 
-if fichier_uploade is not None:
-    with st.spinner("Analyse en cours..."):
-        themes_trouves = extraire_themes_du_pdf(BytesIO(fichier_uploade.read()))
-        st.write("Thèmes trouvés et leurs pages correspondantes :")
-        for theme, pages in themes_trouves.items():
-            st.write(f"{theme} : {pages}")
+    def scrape_content_url(self, url):
+        # Grattage du contenu d'une URL donnée en utilisant requests et justext
+        try:
+            response = requests.get(url)
+            paragraphs = justext.justext(response.content, justext.get_stoplist("French"))
+            scraped_content = [paragraph.text for paragraph in paragraphs if not paragraph.is_boilerplate]
+            content_text = " ".join(scraped_content)
+            return content_text
+        except Exception as e:
+            st.error(f"Erreur lors du grattage du contenu : {str(e)}")
+            return None
+
+    def run(self):
+        st.markdown("<h1 style='font-size:1.5em;'>Institut des Algorithmes du Sénégal - Jangat Web App</h1>", unsafe_allow_html=True)
+
+        # Choix de la source de données
+        option = st.sidebar.radio("Choisissez la source de données :", ("URL", "PDF", "YouTube"))
+
+        # Boutons de la barre latérale
+        action_button = st.sidebar.button("Lancer l'analyse")
+
+        if option == "URL":
+            url = st.text_input("Entrez l'URL à gratter :", "")
+            if action_button:
+                if url:
+                    st.info("Grattage du contenu... Veuillez patienter.")
+                    scraped_content = self.scrape_content_url(url)
+                    if scraped_content:
+                        st.subheader("Contenu gratté :")
+                        st.write(scraped_content)
+
+        elif option == "PDF":
+            fichier_uploade = st.file_uploader("Téléchargez un fichier PDF", type="pdf")
+            if fichier_uploade and action_button:
+                with st.spinner("Analyse en cours..."):
+                    themes_trouves = extraire_themes_du_pdf(BytesIO(fichier_uploade.read()))
+                    st.write("Thèmes trouvés et leurs pages correspondantes :")
+                    for theme, pages in themes_trouves.items():
+                        st.write(f"{theme} : {pages}")
+
+        elif option == "YouTube":
+            youtube_url = st.text_input("Entrez l'URL YouTube :", "")
+            if action_button:
+                if youtube_url:
+                    st.info("Téléchargement de la transcription... Veuillez patienter.")
+                    self.download_transcript(youtube_url, 20)
+
+if __name__ == "__main__":
+    web_app = WebApp()
+    web_app.run()
