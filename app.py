@@ -5,8 +5,6 @@ from pytube import YouTube
 from youtube_transcript_api import YouTubeTranscriptApi
 import requests
 import justext
-
-
 # Liste des thèmes à rechercher
 themes_socio_economiques = [
     "Coût de la vie",
@@ -215,6 +213,8 @@ themes_socio_economiques = [
     "Prévention du mariage des enfants",
 ]
 
+
+
 def extraire_themes_du_pdf(fichier):
     lecteur_pdf = PyPDF2.PdfReader(fichier)
 
@@ -279,9 +279,10 @@ class WebApp:
             if fichier_uploade and action_button:
                 with st.spinner("Analyse en cours..."):
                     themes_trouves = extraire_themes_du_pdf(BytesIO(fichier_uploade.read()))
-                    st.write("Thèmes trouvés et leurs pages correspondantes :")
-                    for theme, pages in themes_trouves.items():
-                        st.write(f"{theme} : {pages}")
+                    st.subheader("Thèmes trouvés et leurs pages correspondantes :")
+                    for index, (theme, pages) in enumerate(themes_trouves.items(), 1):
+                        st.markdown(f"**Thème {index}: {theme}**")
+                        st.write("Pages:", ", ".join(map(str, pages)))
 
         elif option == "YouTube":
             youtube_url = st.text_input("Entrez l'URL YouTube :", "")
