@@ -213,8 +213,6 @@ themes_socio_economiques = [
     "Prévention du mariage des enfants",
 ]
 
-
-
 def extraire_themes_du_pdf(fichier):
     lecteur_pdf = PyPDF2.PdfReader(fichier)
 
@@ -281,8 +279,8 @@ class WebApp:
                     themes_trouves = extraire_themes_du_pdf(BytesIO(fichier_uploade.read()))
                     st.subheader("Voici une liste non exhaustive des thèmes abordés dans le texte :")
                     for index, (theme, pages) in enumerate(themes_trouves.items(), 1):
-                        st.markdown(f"<span style='color:green'>Thème {index}: {theme}</span>", unsafe_allow_html=True)
-                        st.markdown(f"<span style='background-color:blue;color:white;'>Pages: {', '.join(map(str, pages))}</span>", unsafe_allow_html=True)
+                        with st.expander(f"Thème {index}: {theme}"):
+                            st.write(f"Pages : {', '.join(map(str, pages))}")
 
         elif option == "YouTube":
             youtube_url = st.text_input("Entrez l'URL YouTube :", "")
