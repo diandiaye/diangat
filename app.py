@@ -11,6 +11,8 @@ themes_socio_economiques = [
     "Logement",
     "Sécurité",
     "Émigration",
+    "Numérique",
+    "Technologie",
     "Pouvoir d’achat",
     "Aide à l’entreprenariat",
     "Démocratie",
