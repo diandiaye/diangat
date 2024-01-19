@@ -257,7 +257,7 @@ class WebApp:
 
     def run(self):
         st.markdown("<h1 style='font-size:1.5em;'>Institut des Algorithmes du Sénégal - Jangat Web App</h1>", unsafe_allow_html=True)
-        st.info("Bienvenue à l'application \"Jàngat\" de l'Institut des Algorithmes du Sénégal. Cette application interactive a été conçue pour faciliter l'analyse approfondie des discours et des programmes des candidats aux élections, en mettant un accent particulier sur les enjeux socio-économiques. Elle offre aux utilisateurs la possibilité d'extraire des thèmes clés et de découvrir des informations pertinentes dans divers formats de contenu, tels que des documents PDF, des vidéos YouTube et des sites web. Que vous soyez un citoyen engagé, un analyste politique ou simplement intéressé par les dynamiques électorales au Sénégal, cette application vous permet d'accéder facilement à des informations structurées et d'en tirer des insights significatifs. Explorez les thèmes abordés par les candidats, comparez leurs points de vue et prenez des décisions informées.")
+        st.info("Bienvenue à l'application \"Jàngat\" de l'Institut des Algorithmes du Sénégal.")
 
         # Choix de la source de données
         option = st.sidebar.radio("Choisissez la source de données :", ("URL", "PDF", "YouTube"))
