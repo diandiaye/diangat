@@ -278,18 +278,18 @@ class WebApp:
 
         elif option == "Fichier PDF":
             pdf_files = [file for file in os.listdir("dossier_des_pdf") if file.endswith(".pdf")]
-            selected_pdf = st.selectbox("Sélectionnez un fichier PDF :", pdf_files)
-            
-            if selected_pdf and action_button:
-                # Enregistrez le chemin complet du fichier PDF sélectionné
+            selected_pdf = st.selectbox("Sélectionnez un fichier PDF :", pdf_files, index=0)
+
+            if selected_pdf:
                 self.selected_pdf = os.path.join("dossier_des_pdf", selected_pdf)
 
-                with st.spinner("Analyse en cours..."):
-                    themes_trouves = extraire_themes_du_pdf(self.selected_pdf)
-                    st.subheader("Voici une liste non exhaustive des thèmes abordés dans le programme :")
-                    for index, (theme, pages) in enumerate(themes_trouves.items(), 1):
-                        with st.expander(f"Thème {index}: {theme}"):
-                            st.write(f"Pages : {', '.join(map(str, pages))}")
+                if action_button:
+                    with st.spinner("Analyse en cours..."):
+                        themes_trouves = extraire_themes_du_pdf(self.selected_pdf)
+                        st.subheader("Voici une liste non exhaustive des thèmes abordés dans le programme :")
+                        for index, (theme, pages) in enumerate(themes_trouves.items(), 1):
+                            with st.expander(f"Thème {index}: {theme}"):
+                                st.write(f"Pages : {', '.join(map(str, pages))}")
 
         elif option == "YouTube":
             youtube_url = st.text_input("Entrez l'URL YouTube :", "")
