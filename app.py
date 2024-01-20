@@ -4,6 +4,7 @@ from io import BytesIO
 from pytube import YouTube
 from youtube_transcript_api import YouTubeTranscriptApi
 import requests
+import os
 import justext
 # Liste des thèmes à rechercher
 themes_socio_economiques = [
