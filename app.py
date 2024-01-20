@@ -275,15 +275,22 @@ class WebApp:
                         st.subheader("Contenu gratté :")
                         st.write(scraped_content)
 
-        elif option == "PDF":
+        elif option == "Fichier PDF":
             fichier_uploade = st.file_uploader("Téléchargez un fichier PDF", type="pdf")
             if fichier_uploade and action_button:
+                # Enregistrez le fichier PDF localement temporairement
+                with open("temp.pdf", "wb") as temp_file:
+                    temp_file.write(fichier_uploade.read())
+
                 with st.spinner("Analyse en cours..."):
-                    themes_trouves = extraire_themes_du_pdf(BytesIO(fichier_uploade.read()))
+                    themes_trouves = extraire_themes_du_pdf("temp.pdf")
                     st.subheader("Voici une liste non exhaustive des thèmes abordés dans le programme :")
                     for index, (theme, pages) in enumerate(themes_trouves.items(), 1):
                         with st.expander(f"Thème {index}: {theme}"):
                             st.write(f"Pages : {', '.join(map(str, pages))}")
+
+                # Supprimez le fichier temporaire après l'analyse
+                os.remove("temp.pdf")
 
         elif option == "YouTube":
             youtube_url = st.text_input("Entrez l'URL YouTube :", "")
