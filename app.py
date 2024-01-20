@@ -278,7 +278,7 @@ class WebApp:
 
         elif option == "PDF":
             # Liste de fichiers PDF dans le dossier du projet
-            pdf_files = [file for file in os.listdir() if file.endswith(".pdf")]
+            pdf_files = [file for file in os.listdir("data") if file.endswith(".pdf")]
 
             if pdf_files:
                 selected_pdf = st.selectbox("Sélectionnez un fichier PDF :", pdf_files)
