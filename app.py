@@ -277,13 +277,14 @@ class WebApp:
                         st.write(scraped_content)
 
         elif option == "PDF":
-            # Liste de fichiers PDF dans le "/data/" dossier
-            pdf_files = [file for file in os.listdir("/data/") if file.endswith(".pdf")]
+            # Liste de fichiers PDF dans le dossier "data"
+            data_folder = "data"
+            pdf_files = [file for file in os.listdir(data_folder) if file.endswith(".pdf")]
 
             if pdf_files:
                 selected_pdf = st.selectbox("Sélectionnez un fichier PDF :", pdf_files)
                 if selected_pdf:
-                    self.selected_pdf_file = os.path.join("/data/", selected_pdf)
+                    self.selected_pdf_file = os.path.join(data_folder, selected_pdf)
 
             if action_button and self.selected_pdf_file:
                 with st.spinner("Analyse en cours..."):
